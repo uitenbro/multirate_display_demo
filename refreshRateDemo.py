@@ -144,9 +144,8 @@ def stepInput(mode, speed, prevHeight, sign):
     else:
         speedMultiplier = (bar1Modulo/nativeRate)/speed
 
-    if (mode == "smooth"):
+    if (mode == "smooth") or (mode == "target"):
         nextHeight = height + sign*speedMultiplier*maxHeight
-        #print (nextHeight, sign)
     else: # mode = random
         randomSign = random.randrange(-1, 3) # set random up or down
         if (randomSign > 0): #up
@@ -216,50 +215,50 @@ def drawErrorText():
     bar1ErrorText = "{:2.0f}%".format(bar1Error)
     if bar1Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value1BottomLeftX-5, (value1BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(twentyHzLayer, (value1BottomLeftX, (value1BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{}".format(bar1ErrorText), (value1BottomLeftX, value1BottomLeftY + 2*textOffset),
+    cv2.putText(twentyHzLayer, "{:>4}".format(bar1ErrorText), (value1BottomLeftX, value1BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
     
     bar2Error = abs(bar1Height - bar2Height)
     bar2ErrorText = "{:2.0f}%".format(bar2Error)
     if bar2Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value2BottomLeftX-5, (value2BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(twentyHzLayer, (value2BottomLeftX, (value2BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{}".format(bar2ErrorText), (value2BottomLeftX, value2BottomLeftY + 2*textOffset),
+    cv2.putText(twentyHzLayer, "{:>4}".format(bar2ErrorText), (value2BottomLeftX, value2BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
 
     bar3Error = abs(bar1Height - bar3Height)
     bar3ErrorText = "{:2.0f}%".format(bar3Error)
     if bar3Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value3BottomLeftX-5, (value3BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(twentyHzLayer, (value3BottomLeftX, (value3BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)        
-    cv2.putText(twentyHzLayer, "{}".format(bar3ErrorText), (value3BottomLeftX, value3BottomLeftY + 2*textOffset),
+    cv2.putText(twentyHzLayer, "{:>4}".format(bar3ErrorText), (value3BottomLeftX, value3BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
 
     bar4Error = abs(bar1Height - bar4Height)
     bar4ErrorText = "{:2.0f}%".format(bar4Error)
     if bar4Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value4BottomLeftX-5, (value4BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(twentyHzLayer, (value4BottomLeftX, (value4BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{}".format(bar4ErrorText), (value4BottomLeftX, value4BottomLeftY + 2*textOffset),
+    cv2.putText(twentyHzLayer, "{:>4}".format(bar4ErrorText), (value4BottomLeftX, value4BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
 
     bar5Error = abs(bar1Height - bar5Height)
     bar5ErrorText = "{:2.0f}%".format(bar5Error)
     if bar5Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value5BottomLeftX-5, (value5BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(twentyHzLayer, (value5BottomLeftX, (value5BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{}".format(bar5ErrorText), (value5BottomLeftX, value5BottomLeftY + 2*textOffset),
+    cv2.putText(twentyHzLayer, "{:>4}".format(bar5ErrorText), (value5BottomLeftX, value5BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)             
 
 def drawBarValueText(id, height):
@@ -351,7 +350,10 @@ def run40HzStep(frame):
         #reset 20Hz layer to zero 
         twentyHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         #draw 20 Hz elements
-        drawBar("1", height)
+        if mode != "target":
+            drawBar("1", height)
+        else:
+            drawBar("1", 11/15*100)
 
     if (frame % bar2Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar2Modulo)
@@ -443,6 +445,12 @@ def run40HzStep(frame):
             #print(speed)
     elif key == ord('n'):
         stepRate() 
+    elif key == ord('j'):
+        sign = 1 
+    elif key == ord('k'):
+        sign = -1 
+    elif key == ord('t'):
+        mode = "target" 
     elif key == 27:
         exit()
 
