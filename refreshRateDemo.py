@@ -24,10 +24,10 @@ args = vars(ap.parse_args())
 # initialize 
 #image = cv2.imread(args["image"])
 originalImage = cv2.imread("tapes.png")
-twentyHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
-thirteenHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
-tenHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
-fiveHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+bar1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+bar2Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+bar3Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+bar5Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 twoHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 outputImage = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 
@@ -168,22 +168,44 @@ def drawBar(id, height):
     heightPixels = int(barTotalHeight*height/100)
     #print(heightPixels)
     global bar1Height, bar2Height, bar3Height, bar4Height, bar5Height
+    targetHeight = int(11/15*barTotalHeight)
 
     if (id == "1"):
-        cv2.rectangle(twentyHzLayer, (bar1BottomRightX-barWidth, bar1BottomRightY-heightPixels), (bar1BottomRightX, bar1BottomRightY), (0, 255, 0), -1)
+        cv2.rectangle(bar1Layer, (bar1BottomRightX-barWidth, bar1BottomRightY-heightPixels), (bar1BottomRightX, bar1BottomRightY), (0, 255, 0), -1)
         bar1Height = height
+        if mode == "target":
+        	cnt = np.array([(bar1BottomRightX, bar1BottomRightY-targetHeight),
+        		(bar1BottomRightX+15, bar1BottomRightY-targetHeight-8),(bar1BottomRightX+15, bar1BottomRightY-targetHeight+8)])
+        	cv2.drawContours(bar1Layer, [cnt], 0, (147, 20, 255), -1)
     elif (id == "2"):
-        cv2.rectangle(thirteenHzLayer, (bar2BottomRightX-barWidth, bar2BottomRightY-heightPixels), (bar2BottomRightX, bar2BottomRightY), (0, 255, 0), -1)
+        cv2.rectangle(bar2Layer, (bar2BottomRightX-barWidth, bar2BottomRightY-heightPixels), (bar2BottomRightX, bar2BottomRightY), (0, 255, 0), -1)
         bar2Height = height
+        if mode == "target":
+        	cnt = np.array([(bar2BottomRightX, bar2BottomRightY-targetHeight),
+        		(bar2BottomRightX+15, bar2BottomRightY-targetHeight-8),(bar2BottomRightX+15, bar2BottomRightY-targetHeight+8)])
+        	cv2.drawContours(bar2Layer, [cnt], 0, (147, 20, 255), -1)
     elif (id == "3"):
-        cv2.rectangle(tenHzLayer, (bar3BottomRightX-barWidth, bar3BottomRightY-heightPixels), (bar3BottomRightX, bar3BottomRightY), (0, 255, 0), -1)
+        cv2.rectangle(bar3Layer, (bar3BottomRightX-barWidth, bar3BottomRightY-heightPixels), (bar3BottomRightX, bar3BottomRightY), (0, 255, 0), -1)
         bar3Height = height
+        if mode == "target":
+        	cnt = np.array([(bar3BottomRightX, bar3BottomRightY-targetHeight),
+        		(bar3BottomRightX+15, bar3BottomRightY-targetHeight-8),(bar3BottomRightX+15, bar3BottomRightY-targetHeight+8)])
+        	cv2.drawContours(bar3Layer, [cnt], 0, (147, 20, 255), -1)        
     elif (id == "4"):
-        cv2.rectangle(eightHzLayer, (bar4BottomRightX-barWidth, bar4BottomRightY-heightPixels), (bar4BottomRightX, bar4BottomRightY), (0, 255, 0), -1)
+        cv2.rectangle(bar4Layer, (bar4BottomRightX-barWidth, bar4BottomRightY-heightPixels), (bar4BottomRightX, bar4BottomRightY), (0, 255, 0), -1)
         bar4Height = height
+        if mode == "target":
+        	cnt = np.array([(bar4BottomRightX, bar4BottomRightY-targetHeight),
+        		(bar4BottomRightX+15, bar4BottomRightY-targetHeight-8),(bar4BottomRightX+15, bar4BottomRightY-targetHeight+8)])
+        	cv2.drawContours(bar4Layer, [cnt], 0, (147, 20, 255), -1)        
     elif (id == "5"):
-        cv2.rectangle(fiveHzLayer, (bar5BottomRightX-barWidth, bar5BottomRightY-heightPixels), (bar5BottomRightX, bar5BottomRightY), (0, 255, 0), -1)
+        cv2.rectangle(bar5Layer, (bar5BottomRightX-barWidth, bar5BottomRightY-heightPixels), (bar5BottomRightX, bar5BottomRightY), (0, 255, 0), -1)
         bar5Height = height
+        if mode == "target":
+        	cnt = np.array([(bar5BottomRightX, bar5BottomRightY-targetHeight),
+        		(bar5BottomRightX+15, bar5BottomRightY-targetHeight-8),(bar5BottomRightX+15, bar5BottomRightY-targetHeight+8)])
+        	cv2.drawContours(bar5Layer, [cnt], 0, (147, 20, 255), -1)
+
     drawBarValueText(id, height)
     #print("u: ", bar1Height, bar2Height, bar3Height, bar4Height, bar5Height)
 
@@ -207,77 +229,81 @@ def drawDisplayText(id, height):
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)             
 
 def drawErrorText():
-    global bar1Height, bar2Height, bar3Height, bar4Height, bar5Height
+    global bar1Height, bar2Height, bar3Height, bar4Height, bar5Height, mode
     #print("e: ", bar1Height, bar2Height, bar3Height, bar4Height, bar5Height)
     #print("e: ", bar1Height-bar1Height, bar1Height-bar2Height, bar1Height-bar3Height, bar1Height-bar4Height, bar1Height-bar5Height)
-    
-    bar1Error = abs(bar1Height - bar1Height)
+    if mode == "target":
+    	truth = 11/15*100
+    else:
+    	truth = bar1Height
+
+    bar1Error = abs(truth - bar1Height)
     bar1ErrorText = "{:2.0f}%".format(bar1Error)
     if bar1Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value1BottomLeftX, (value1BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(bar1Layer, (value1BottomLeftX, (value1BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{:>4}".format(bar1ErrorText), (value1BottomLeftX, value1BottomLeftY + 2*textOffset),
+    cv2.putText(bar1Layer, "{:>4}".format(bar1ErrorText), (value1BottomLeftX, value1BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
     
-    bar2Error = abs(bar1Height - bar2Height)
+    bar2Error = abs(truth - bar2Height)
     bar2ErrorText = "{:2.0f}%".format(bar2Error)
     if bar2Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value2BottomLeftX, (value2BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(bar1Layer, (value2BottomLeftX, (value2BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{:>4}".format(bar2ErrorText), (value2BottomLeftX, value2BottomLeftY + 2*textOffset),
+    cv2.putText(bar1Layer, "{:>4}".format(bar2ErrorText), (value2BottomLeftX, value2BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
 
-    bar3Error = abs(bar1Height - bar3Height)
+    bar3Error = abs(truth - bar3Height)
     bar3ErrorText = "{:2.0f}%".format(bar3Error)
     if bar3Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value3BottomLeftX, (value3BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(bar1Layer, (value3BottomLeftX, (value3BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)        
-    cv2.putText(twentyHzLayer, "{:>4}".format(bar3ErrorText), (value3BottomLeftX, value3BottomLeftY + 2*textOffset),
+    cv2.putText(bar1Layer, "{:>4}".format(bar3ErrorText), (value3BottomLeftX, value3BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
 
-    bar4Error = abs(bar1Height - bar4Height)
+    bar4Error = abs(truth - bar4Height)
     bar4ErrorText = "{:2.0f}%".format(bar4Error)
     if bar4Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value4BottomLeftX, (value4BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(bar1Layer, (value4BottomLeftX, (value4BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{:>4}".format(bar4ErrorText), (value4BottomLeftX, value4BottomLeftY + 2*textOffset),
+    cv2.putText(bar1Layer, "{:>4}".format(bar4ErrorText), (value4BottomLeftX, value4BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
 
-    bar5Error = abs(bar1Height - bar5Height)
+    bar5Error = abs(truth - bar5Height)
     bar5ErrorText = "{:2.0f}%".format(bar5Error)
     if bar5Error > tolerance*100:
         color = (0, 254,254)
-        cv2.circle(twentyHzLayer, (value5BottomLeftX, (value5BottomLeftY-10) + 2*textOffset), 10, color, -1)
+        cv2.circle(bar1Layer, (value5BottomLeftX, (value5BottomLeftY-10) + 2*textOffset), 10, color, -1)
     else:
         color = (255, 255, 255)
-    cv2.putText(twentyHzLayer, "{:>4}".format(bar5ErrorText), (value5BottomLeftX, value5BottomLeftY + 2*textOffset),
+    cv2.putText(bar1Layer, "{:>4}".format(bar5ErrorText), (value5BottomLeftX, value5BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)             
 
 def drawBarValueText(id, height):
 
     heightText = "{:2.0f}%".format(height) 
     if (id == "1"):
-        cv2.putText(twentyHzLayer, "{:>4}".format(heightText), (value1BottomLeftX, value1BottomLeftY + textOffset),
+        cv2.putText(bar1Layer, "{:>4}".format(heightText), (value1BottomLeftX, value1BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     elif (id == "2"):
-        cv2.putText(thirteenHzLayer, "{:>4}".format(heightText), (value2BottomLeftX, value2BottomLeftY + textOffset),
+        cv2.putText(bar2Layer, "{:>4}".format(heightText), (value2BottomLeftX, value2BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     elif (id == "3"):
-        cv2.putText(tenHzLayer, "{:>4}".format(heightText), (value3BottomLeftX, value3BottomLeftY + textOffset),
+        cv2.putText(bar3Layer, "{:>4}".format(heightText), (value3BottomLeftX, value3BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     elif (id == "4"):
-        cv2.putText(eightHzLayer, "{:>4}".format(heightText), (value4BottomLeftX, value4BottomLeftY + textOffset),
+        cv2.putText(bar4Layer, "{:>4}".format(heightText), (value4BottomLeftX, value4BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     elif (id == "5"):
-        cv2.putText(fiveHzLayer, "{:>4}".format(heightText), (value5BottomLeftX, value5BottomLeftY + textOffset),
+        cv2.putText(bar5Layer, "{:>4}".format(heightText), (value5BottomLeftX, value5BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)             
 
 def drawLabelsSettings(speed):
@@ -311,9 +337,9 @@ def drawLabelsSettings(speed):
 
   
 def mergeLayers():
-    #print(twentyHzLayer.shape, twentyHzLayer1.shape)
-    #outputImage = cv2.addWeighted(twentyHzLayer, .5, originalImage, .5, 0) # outputImage)
-    #outputImage = 0.5*twentyHzLayer[:,:,:] + 0.5*twentyHzLayer1[:,:,:]
+    #print(bar1Layer.shape, bar1Layer1.shape)
+    #outputImage = cv2.addWeighted(bar1Layer, .5, originalImage, .5, 0) # outputImage)
+    #outputImage = 0.5*bar1Layer[:,:,:] + 0.5*bar1Layer1[:,:,:]
 
     print(outputImage.shape)
     print(outputImage[0])
@@ -327,11 +353,11 @@ def run40HzStep(frame):
     global tolerance
     global height
     global sign
-    global twentyHzLayer
-    global thirteenHzLayer
-    global tenHzLayer
-    global eightHzLayer
-    global fiveHzLayer
+    global bar1Layer
+    global bar2Layer
+    global bar3Layer
+    global bar4Layer
+    global bar5Layer
     global twoHzLayer
     global outputImage
     #global bar1Modulo bar2Modulo bar3Modulo bar4Modulo loopMax
@@ -344,35 +370,32 @@ def run40HzStep(frame):
         (height, sign) = stepInput(mode, speed, height, sign)
 
         #capture mask of current 20 Hz Layer and restore the outputImage
-        mask = twentyHzLayer.copy()
+        mask = bar1Layer.copy()
         outputImage[mask >0] = originalImage[mask>0]
 
         #reset 20Hz layer to zero 
-        twentyHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+        bar1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         #draw 20 Hz elements
-        if mode != "target":
-            drawBar("1", height)
-        else:
-            drawBar("1", 11/15*100)
+        drawBar("1", height)
 
     if (frame % bar2Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar2Modulo)
-        thirteenHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+        bar2Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("2", height)
         #drawTruthText("2", height)
     if (frame % bar3Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar3Modulo)
-        tenHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+        bar3Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("3", height)
         #drawTruthText("3", height)
     if (frame % bar4Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar4Modulo)
-        eightHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+        bar4Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("4", height)   
         #drawTruthText("4", height)
     if (frame % bar5Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar5Modulo)
-        fiveHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+        bar5Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("5", height)
         #drawTruthText("5", height)
     if (frame % twoHzModulo) == 0: # 2Hz
@@ -385,31 +408,31 @@ def run40HzStep(frame):
     drawErrorText()
 
     #get 20Hz layer mask restore areas that aren't going to be filled to original image
-    mask = twentyHzLayer.copy()
+    mask = bar1Layer.copy()
     outputImage[mask == 0] = originalImage[mask == 0]
     #overlay 20Hz layer
-    outputImage[mask > 0] = twentyHzLayer[mask > 0]
+    outputImage[mask > 0] = bar1Layer[mask > 0]
 
     #get 13.3Hz layer mask and overlay 2Hz layer
-    mask = thirteenHzLayer.copy()
-    outputImage[mask > 0] = thirteenHzLayer[mask > 0]
+    mask = bar2Layer.copy()
+    outputImage[mask > 0] = bar2Layer[mask > 0]
     #get 10Hz layer mask and overlay 2Hz layer
-    mask = tenHzLayer.copy()
-    outputImage[mask > 0] = tenHzLayer[mask > 0]
+    mask = bar3Layer.copy()
+    outputImage[mask > 0] = bar3Layer[mask > 0]
     #get 8Hz layer mask and overlay 2Hz layer
-    mask = eightHzLayer.copy()
-    outputImage[mask > 0] = eightHzLayer[mask > 0]
+    mask = bar4Layer.copy()
+    outputImage[mask > 0] = bar4Layer[mask > 0]
     #get 5Hz layer mask and overlay 2Hz layer
-    mask = fiveHzLayer.copy()
-    outputImage[mask > 0] = fiveHzLayer[mask > 0]
+    mask = bar5Layer.copy()
+    outputImage[mask > 0] = bar5Layer[mask > 0]
     #get 2Hz layer mask and overlay 2Hz layer
     mask = twoHzLayer.copy()
     outputImage[mask > 0] = twoHzLayer[mask > 0]
 
-    # cv2.imshow("thirteenHzLayer", thirteenHzLayer)
+    # cv2.imshow("bar2Layer", bar2Layer)
     # cv2.waitKey(1)
 
-    # cv2.imshow("tenHzLayer", tenHzLayer)
+    # cv2.imshow("bar3Layer", bar3Layer)
     # cv2.waitKey(1)
 
     cv2.imshow("Refresh Rate Model", outputImage)
@@ -445,14 +468,20 @@ def run40HzStep(frame):
             #print(speed)
     elif key == ord('n'):
         stepRate() 
-    elif key == ord('j'):
+    elif key == ord('j') or key == 0:
         sign = 1 
-    elif key == ord('k'):
+    elif key == ord('k') or key == 1:
         sign = -1 
     elif key == ord('t'):
         mode = "target" 
     elif key == 27:
         exit()
+    elif key != -1:
+    	print ("\n\n(", key, chr(key), ") function not found\n")
+    	print ("(spacebar) pause\n(s) smooth mode\n(r) random mode\n(t) target mode")
+    	print ("(-/+) data speed control\n([/]) tolerance control")
+    	print ("(j/up-arrow) up\n(k/down-arrow) down\n(n) step model rate")
+    	print ("(esc) quit\n\n")
 
     elapsed = time.time()-startTime
     if elapsed < (period):
