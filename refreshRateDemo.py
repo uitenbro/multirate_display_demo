@@ -1,6 +1,4 @@
 # USAGE
-# python facial_landmarks.py --shape-predictor shape_predictor_68_face_landmarks.dat --image images/example_01.jpg 
-
 # import the necessary packages
 #from imutils import face_utils
 import numpy as np
@@ -229,9 +227,7 @@ def drawDisplayText(id, height):
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)             
 
 def drawErrorText():
-    global bar1Height, bar2Height, bar3Height, bar4Height, bar5Height, mode
-    #print("e: ", bar1Height, bar2Height, bar3Height, bar4Height, bar5Height)
-    #print("e: ", bar1Height-bar1Height, bar1Height-bar2Height, bar1Height-bar3Height, bar1Height-bar4Height, bar1Height-bar5Height)
+
     if mode == "target":
     	truth = 11/15*100
     else:
@@ -360,7 +356,6 @@ def run40HzStep(frame):
     global bar5Layer
     global twoHzLayer
     global outputImage
-    #global bar1Modulo bar2Modulo bar3Modulo bar4Modulo loopMax
 
     frameInfo = ""
 
@@ -368,61 +363,50 @@ def run40HzStep(frame):
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar1Modulo)
         #update data input
         (height, sign) = stepInput(mode, speed, height, sign)
-
-        #capture mask of current 20 Hz Layer and restore the outputImage
-        mask = bar1Layer.copy()
-        outputImage[mask >0] = originalImage[mask>0]
-
-        #reset 20Hz layer to zero 
+        #clear bar# layer to zero and draw bar# layer elements
         bar1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
-        #draw 20 Hz elements
         drawBar("1", height)
-
     if (frame % bar2Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar2Modulo)
         bar2Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("2", height)
-        #drawTruthText("2", height)
     if (frame % bar3Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar3Modulo)
         bar3Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("3", height)
-        #drawTruthText("3", height)
     if (frame % bar4Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar4Modulo)
         bar4Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("4", height)   
-        #drawTruthText("4", height)
     if (frame % bar5Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar5Modulo)
         bar5Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("5", height)
-        #drawTruthText("5", height)
-    if (frame % twoHzModulo) == 0: # 2Hz
+    if (frame % twoHzModulo) == 0: # clear 2 Hz layers and draw 2 Hz elements
         frameInfo += " {:0.2f}Hz".format(nativeRate/twoHzModulo)
-        #reset 20Hz layer to zero 
         twoHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawDisplayText("0", height)
         drawLabelsSettings(speed)
 
     drawErrorText()
 
-    #get 20Hz layer mask restore areas that aren't going to be filled to original image
-    mask = bar1Layer.copy()
-    outputImage[mask == 0] = originalImage[mask == 0]
-    #overlay 20Hz layer
-    outputImage[mask > 0] = bar1Layer[mask > 0]
+    #restore background
+    outputImage = originalImage.copy()
+    #outputImage[mask == 0] = originalImage[mask == 0] # restore only areas that arent in bar1 layer
 
-    #get 13.3Hz layer mask and overlay 2Hz layer
+    #get bar1 layer mask and overlay bar1 layer
+    mask = bar1Layer.copy()
+    outputImage[mask > 0] = bar1Layer[mask > 0]
+    #get bar2 layer mask and overlay bar2 layer
     mask = bar2Layer.copy()
     outputImage[mask > 0] = bar2Layer[mask > 0]
-    #get 10Hz layer mask and overlay 2Hz layer
+    #get bar3 layer mask and overlay bar3 layer
     mask = bar3Layer.copy()
     outputImage[mask > 0] = bar3Layer[mask > 0]
-    #get 8Hz layer mask and overlay 2Hz layer
+    #get bar4 layer mask and overlay bar4 layer
     mask = bar4Layer.copy()
     outputImage[mask > 0] = bar4Layer[mask > 0]
-    #get 5Hz layer mask and overlay 2Hz layer
+    #get bar5 layer mask and overlay bar5 layer
     mask = bar5Layer.copy()
     outputImage[mask > 0] = bar5Layer[mask > 0]
     #get 2Hz layer mask and overlay 2Hz layer
@@ -490,23 +474,17 @@ def run40HzStep(frame):
         frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + frameInfo
         frameInfo = "{:>3}:".format(frame) + frameInfo
     else:
-        frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + frameInfo + " *overrun* {:>3} msec".format(math.floor((elapsed-period)*1000))
+        frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + " *overrun* {:>3} msec".format(math.floor((elapsed-period)*1000)) + frameInfo 
         frameInfo = "{:>3}:".format(frame) + frameInfo
 
         print(frameInfo)
 
-x = 100000    
 frame = 0
-
-while x > 0:
-
+while 1:
     run40HzStep(frame)
-
     frame+=1
     if frame >= loopMax:
         frame = 0
-
-    x-=1
 
 
 
