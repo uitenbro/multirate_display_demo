@@ -28,6 +28,7 @@ bar3Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 bar5Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 twoHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 errorLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+pfd1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 outputImage = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 
 barTotalHeight = 289 #pixels
@@ -82,6 +83,10 @@ bar5LabelY = 45
 
 maxHeight = 100
 maxDisplayValue = 15
+
+pfdCenterPixelX = 325
+pfdCenterPixelY = 225
+roll = 0
 
 bar1Height = 0
 bar2Height = 0
@@ -249,7 +254,7 @@ def drawErrorText():
         color = (255, 255, 255)
     cv2.putText(errorLayer, "{:>4}".format(bar1ErrorText), (value1BottomLeftX, value1BottomLeftY + 2*textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
-    
+
     bar2Error = abs(truth - bar2Height)
     bar2ErrorText = "{:2.1f}%".format(bar2Error)
     if bar2Error > tolerance*100:
@@ -338,6 +343,35 @@ def drawLabelsSettings(speed):
     cv2.putText(twoHzLayer, "{:>7}".format(bar5RateText), (bar5LabelX, bar5LabelY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
 
+def drawPFD(yaw, pitch, roll):
+	global pfd1Layer
+
+	yawRange = 180 # +/- degrees
+	pitchRange = 90 # +/- degrees
+	rollRange = 90 # +/- degress
+	pfdTotalHeight = 300 # pixels
+	pfdTotalWidth = 180 # pixels
+
+	pixelsPerDegree = 1
+
+	pitchInPixels = pitch*pixelsPerDegree
+
+	# draw horizon line
+	centerHorizon = pfdTotalHeight/2 + pitchInPixels
+	if centerHorizon > pfdTotalHeight:
+		centerHorizon = pfdTotalHeight
+
+	horizonLeftX = int(pfdCenterPixelX - pfdTotalWidth/2)
+	horizonLeftY = int(pfdCenterPixelY - pfdTotalWidth/2*math.atan(math.radians(roll)))
+	horizonRightX = int(pfdCenterPixelX + pfdTotalWidth/2)
+	horizonRightY = int(pfdCenterPixelY + pfdTotalWidth/2*math.atan(math.radians(roll)))
+
+	pfd1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+	#cv2.line(pfd1Layer, (horizonLeftX, horizonLeftY), (horizonRightX, horizonRightY), (255,255,255), 2)
+
+	#print (roll, math.tan(math.radians(roll)), horizonLeftX, horizonLeftY, horizonRightX, horizonRightY)
+
+
 def runOneStep(frame):
     startTime = time.time()
     #print(startTime)
@@ -346,6 +380,7 @@ def runOneStep(frame):
     global tolerance
     global height
     global sign
+    global roll
     global bar1Layer
     global bar2Layer
     global bar3Layer
@@ -353,6 +388,7 @@ def runOneStep(frame):
     global bar5Layer
     global twoHzLayer
     global errorLayer
+    global pfd1Layer
     global outputImage
 
     frameInfo = ""
@@ -389,6 +425,7 @@ def runOneStep(frame):
         
     #compare displayed values to truth at the end of the frame where inputs where updated
     drawErrorText()
+    drawPFD(0,0,roll)
 
     #restore background
     outputImage = originalImage.copy()
@@ -415,9 +452,11 @@ def runOneStep(frame):
     #get error layer mask and overlay error layer
     mask = errorLayer.copy()
     outputImage[mask > 0] = errorLayer[mask > 0]
+    mask = pfd1Layer.copy()
+    outputImage[mask > 0] = pfd1Layer[mask > 0]
 
-    # cv2.imshow("bar2Layer", bar2Layer)
-    # cv2.waitKey(1)
+    #cv2.imshow("pfd1Layer", pfd1Layer)
+    #cv2.waitKey(1)
 
     # cv2.imshow("bar3Layer", bar3Layer)
     # cv2.waitKey(1)
@@ -446,8 +485,8 @@ def runOneStep(frame):
             #print(speed)
     elif key == ord(']'):
         tolerance += 0.01
-        if tolerance >= .10:
-            tolerance = .10 
+        if tolerance >= .20:
+            tolerance = .20 
     elif key == ord('[') :
         tolerance -= 0.01
         if tolerance <= 0: 
@@ -461,6 +500,10 @@ def runOneStep(frame):
         sign = -1 
     elif key == ord('t'):
         mode = "target" 
+    elif key == ord('3') or key == 3:
+    	roll += 5
+    elif key == ord('2') or key == 2:
+    	roll -= 5
     elif key == 27:
         exit()
     elif key != -1:
