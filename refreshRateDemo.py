@@ -87,6 +87,8 @@ maxDisplayValue = 15
 pfdCenterPixelX = 325
 pfdCenterPixelY = 225
 roll = 0
+pitch = 0
+yaw = 0
 
 bar1Height = 0
 bar2Height = 0
@@ -96,6 +98,8 @@ bar5Height = 0
 
 def initRates(nativeRate):
     # (bar1Modulo, bar2Modulo, bar3Modulo, bar4Modulo, bar5Modulo, twoHzModulo, loopMax)
+    #if nativeRate >= 80:
+    #    return (5, 6, 7, 8, 9, 40, 5040)  #    20,     10,    6.7,   5, 4
     if nativeRate >= 40:
         return (2, 3, 4, 5, 8, 20, 120) #    20, 13, 10, 8,        5
     elif nativeRate >= 30:
@@ -124,6 +128,8 @@ def stepRate():
         nativeRate = 20    
     elif nativeRate == 20:
         nativeRate = 40
+    #elif nativeRate == 80:
+    #    nativeRate = 40
     period = 1/nativeRate
     (bar1Modulo, bar2Modulo, bar3Modulo, bar4Modulo, bar5Modulo, twoHzModulo, loopMax) = initRates(nativeRate)
 
@@ -140,7 +146,7 @@ else:
 
 
 
-def stepInput(mode, speed, prevHeight, sign):
+def stepBarInput(mode, speed, prevHeight, sign):
     # speed = seconds to traverse full range (sec/100%)
     # height range 0 - 100%
     if speed == 0:
@@ -167,6 +173,35 @@ def stepInput(mode, speed, prevHeight, sign):
 
     return (nextHeight, sign)    
 
+def stepPfdInput(mode, speed, prevYaw, prevPitch, prevRoll, sign):
+
+    maxRoll = 90 # degrees
+
+    if speed == 0:
+        speedMultiplier = 1 # full scale (flashing)
+    else:
+        speedMultiplier = (bar1Modulo/nativeRate)/speed
+
+    if (mode == "smooth") or (mode == "target"):
+        nextRoll = prevRoll + sign*speedMultiplier*maxRoll*2
+    else: # mode = random
+        randomSign = random.randrange(-1, 2) # set random up or down
+        if (randomSign > 0): #up
+            nextRoll = prevRoll + speedMultiplier*maxRoll*2
+        else: # down 
+            nextRoll = prevRoll - speedMultiplier*maxRoll*2
+        #print(randomSign, nextRoll)
+
+    if (nextRoll >= maxRoll):
+        nextRoll = maxRoll
+        sign = -1 #change direction for smooth mode
+    if (nextRoll <= -maxRoll):
+        nextRoll = -maxRoll
+        sign = 1 #change direction smooth mode
+       
+    #print(nextRoll)
+
+    return (0,0, nextRoll)    
 
 def drawBar(id, height):
     heightPixels = int(barTotalHeight*height/100)
@@ -343,34 +378,48 @@ def drawLabelsSettings(speed):
     cv2.putText(twoHzLayer, "{:>7}".format(bar5RateText), (bar5LabelX, bar5LabelY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
 
-def drawPFD(yaw, pitch, roll):
-	global pfd1Layer
+def drawPFD(id, yaw, pitch, roll):
+    global pfd1Layer
+    global bar1Layer
+    global bar2Layer
+    global bar3Layer
+    global bar4Layer
+    global bar5Layer
 
-	yawRange = 180 # +/- degrees
-	pitchRange = 90 # +/- degrees
-	rollRange = 90 # +/- degress
-	pfdTotalHeight = 300 # pixels
-	pfdTotalWidth = 180 # pixels
+    yawRange = 180 # +/- degrees
+    pitchRange = 90 # +/- degrees
+    rollRange = 90 # +/- degress
+    pfdTotalHeight = 300 # pixels
+    pfdTotalWidth = 180 # pixels
 
-	pixelsPerDegree = 1
+    pixelsPerDegree = 1
 
-	pitchInPixels = pitch*pixelsPerDegree
+    pitchInPixels = pitch*pixelsPerDegree
 
-	# draw horizon line
-	centerHorizon = pfdTotalHeight/2 + pitchInPixels
-	if centerHorizon > pfdTotalHeight:
-		centerHorizon = pfdTotalHeight
+    # draw horizon line
+    centerHorizon = pfdTotalHeight/2 + pitchInPixels
+    if centerHorizon > pfdTotalHeight:
+        centerHorizon = pfdTotalHeight
 
-	horizonLeftX = int(pfdCenterPixelX - pfdTotalWidth/2)
-	horizonLeftY = int(pfdCenterPixelY - pfdTotalWidth/2*math.atan(math.radians(roll)))
-	horizonRightX = int(pfdCenterPixelX + pfdTotalWidth/2)
-	horizonRightY = int(pfdCenterPixelY + pfdTotalWidth/2*math.atan(math.radians(roll)))
+    horizonLeftX = int(pfdCenterPixelX - pfdTotalWidth/2)
+    horizonLeftY = int(pfdCenterPixelY - pfdTotalWidth/2*math.atan(math.radians(roll)))
+    horizonRightX = int(pfdCenterPixelX + pfdTotalWidth/2)
+    horizonRightY = int(pfdCenterPixelY + pfdTotalWidth/2*math.atan(math.radians(roll)))
+    #print (roll, math.tan(math.radians(roll)), horizonLeftX, horizonLeftY, horizonRightX, horizonRightY)
 
-	pfd1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
-	#cv2.line(pfd1Layer, (horizonLeftX, horizonLeftY), (horizonRightX, horizonRightY), (255,255,255), 2)
+    #pfd1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 
-	#print (roll, math.tan(math.radians(roll)), horizonLeftX, horizonLeftY, horizonRightX, horizonRightY)
-
+    pfdOffset = 200 #pixels
+    if (id == "1"):
+        cv2.line(bar1Layer, (horizonLeftX, horizonLeftY), (horizonRightX, horizonRightY), (255,255,255), 2)
+    elif (id == "2"):
+        cv2.line(bar2Layer, (horizonLeftX+pfdOffset, horizonLeftY), (horizonRightX+pfdOffset, horizonRightY), (255,255,255), 2)
+    elif (id == "3"):
+        cv2.line(bar3Layer, (horizonLeftX+pfdOffset*2, horizonLeftY), (horizonRightX+pfdOffset*2, horizonRightY), (255,255,255), 2)
+    elif (id == "4"):
+        cv2.line(bar4Layer, (horizonLeftX+pfdOffset*3, horizonLeftY), (horizonRightX+pfdOffset*3, horizonRightY), (255,255,255), 2)
+    elif (id == "5"):
+        cv2.line(bar5Layer, (horizonLeftX+pfdOffset*4, horizonLeftY), (horizonRightX+pfdOffset*4, horizonRightY), (255,255,255), 2)
 
 def runOneStep(frame):
     startTime = time.time()
@@ -380,7 +429,7 @@ def runOneStep(frame):
     global tolerance
     global height
     global sign
-    global roll
+    global yaw, pitch, roll
     global bar1Layer
     global bar2Layer
     global bar3Layer
@@ -396,26 +445,33 @@ def runOneStep(frame):
     if (frame % bar1Modulo) == 0: # load balance 20Hz to odd frames for 40Hz native rate
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar1Modulo)
         #update data input
-        (height, sign) = stepInput(mode, speed, height, sign)
+        (height, sign) = stepBarInput(mode, speed, height, sign)
+        (yaw, pitch, roll) = stepPfdInput(mode, speed, yaw, pitch, roll, sign)
+        
         #clear bar# layer to zero and draw bar# layer elements
         bar1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("1", height)
+        drawPFD("1", yaw, pitch, roll)
     if (frame % bar2Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar2Modulo)
         bar2Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("2", height)
+        drawPFD("2", yaw, pitch, roll)
     if (frame % bar3Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar3Modulo)
         bar3Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("3", height)
+        drawPFD("3", yaw, pitch, roll)
     if (frame % bar4Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar4Modulo)
         bar4Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
-        drawBar("4", height)   
+        drawBar("4", height)
+        drawPFD("4", yaw, pitch, roll)
     if (frame % bar5Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar5Modulo)
         bar5Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
         drawBar("5", height)
+        drawPFD("5", yaw, pitch, roll)
     if (frame % twoHzModulo) == 0: # clear 2 Hz layers and draw 2 Hz elements
         frameInfo += " {:0.2f}Hz".format(nativeRate/twoHzModulo)
         twoHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
@@ -425,7 +481,7 @@ def runOneStep(frame):
         
     #compare displayed values to truth at the end of the frame where inputs where updated
     drawErrorText()
-    drawPFD(0,0,roll)
+    #drawPFD(0,0,roll)
 
     #restore background
     outputImage = originalImage.copy()
@@ -473,6 +529,7 @@ def runOneStep(frame):
         mode = "smooth"
         sign = 1
         height = 0
+        roll = 0
     elif key == ord('-'):
         speed += 0.25
         if speed >= 10:
@@ -501,9 +558,9 @@ def runOneStep(frame):
     elif key == ord('t'):
         mode = "target" 
     elif key == ord('3') or key == 3:
-    	roll += 5
+        roll += 5
     elif key == ord('2') or key == 2:
-    	roll -= 5
+        roll -= 5
     elif key == 27:
         exit()
     elif key != -1:
