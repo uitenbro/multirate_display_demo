@@ -253,19 +253,19 @@ def drawDisplayText(id, height):
     height = "{:2.1f}".format((maxDisplayValue*height/100))
     if (id == "1") or (id == "0"):
         cv2.putText(twoHzLayer, "{:>4}".format(height), (value1BottomLeftX, value1BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
     if (id == "2") or (id == "0"):
         cv2.putText(twoHzLayer, "{:>4}".format(height), (value2BottomLeftX, value2BottomLeftY),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     if (id == "3") or (id == "0"):
         cv2.putText(twoHzLayer, "{:>4}".format(height), (value3BottomLeftX, value3BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
     if (id == "4") or (id == "0"):
         cv2.putText(twoHzLayer, "{:>4}".format(height), (value4BottomLeftX, value4BottomLeftY),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     if (id == "5") or (id == "0"):
         cv2.putText(twoHzLayer, "{:>4}".format(height), (value5BottomLeftX, value5BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)             
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)             
 
 def drawErrorText():
     global errorLayer
@@ -288,7 +288,7 @@ def drawErrorText():
     else:
         color = (255, 255, 255)
     cv2.putText(errorLayer, "{:>4}".format(bar1ErrorText), (value1BottomLeftX, value1BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)
 
     bar2Error = abs(truth - bar2Height)
     bar2ErrorText = "{:2.1f}%".format(bar2Error)
@@ -308,7 +308,7 @@ def drawErrorText():
     else:
         color = (255, 255, 255)        
     cv2.putText(errorLayer, "{:>4}".format(bar3ErrorText), (value3BottomLeftX, value3BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)
 
     bar4Error = abs(truth - bar4Height)
     bar4ErrorText = "{:2.1f}%".format(bar4Error)
@@ -328,26 +328,26 @@ def drawErrorText():
     else:
         color = (255, 255, 255)
     cv2.putText(errorLayer, "{:>4}".format(bar5ErrorText), (value5BottomLeftX, value5BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2)             
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)             
 
 def drawBarValueText(id, height):
 
     heightText = "{:2.1f}%".format(height) 
     if (id == "1"):
         cv2.putText(bar1Layer, "{:>4}".format(heightText), (value1BottomLeftX-5, value1BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
     elif (id == "2"):
         cv2.putText(bar2Layer, "{:>4}".format(heightText), (value2BottomLeftX-5, value2BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     elif (id == "3"):
         cv2.putText(bar3Layer, "{:>4}".format(heightText), (value3BottomLeftX-5, value3BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
     elif (id == "4"):
         cv2.putText(bar4Layer, "{:>4}".format(heightText), (value4BottomLeftX-5, value4BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     elif (id == "5"):
         cv2.putText(bar5Layer, "{:>4}".format(heightText), (value5BottomLeftX-5, value5BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)             
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)             
 
 def drawLabelsSettings(speed):
 
@@ -364,19 +364,19 @@ def drawLabelsSettings(speed):
 
     bar1RateText = "{:2.1f} Hz".format(nativeRate/bar1Modulo)
     cv2.putText(twoHzLayer, "{:>7}".format(bar1RateText), (bar1LabelX, bar1LabelY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
     bar2RateText = "{:2.1f} Hz".format(nativeRate/bar2Modulo)
     cv2.putText(twoHzLayer, "{:>7}".format(bar2RateText), (bar2LabelX, bar2LabelY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     bar3RateText = "{:2.1f} Hz".format(nativeRate/bar3Modulo)
     cv2.putText(twoHzLayer, "{:>7}".format(bar3RateText), (bar3LabelX, bar3LabelY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
     bar4RateText = "{:2.1f} Hz".format(nativeRate/bar4Modulo)
     cv2.putText(twoHzLayer, "{:>7}".format(bar4RateText), (bar4LabelX, bar4LabelY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     bar5RateText = "{:2.1f} Hz".format(nativeRate/bar5Modulo)
     cv2.putText(twoHzLayer, "{:>7}".format(bar5RateText), (bar5LabelX, bar5LabelY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
 
 def drawPFD(id, yaw, pitch, roll):
     global pfd1Layer
@@ -411,15 +411,15 @@ def drawPFD(id, yaw, pitch, roll):
 
     pfdOffset = 200 #pixels
     if (id == "1"):
-        cv2.line(bar1Layer, (horizonLeftX, horizonLeftY), (horizonRightX, horizonRightY), (255,255,255), 2)
+        cv2.line(bar1Layer, (horizonLeftX, horizonLeftY), (horizonRightX, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
     elif (id == "2"):
         cv2.line(bar2Layer, (horizonLeftX+pfdOffset, horizonLeftY), (horizonRightX+pfdOffset, horizonRightY), (255,255,255), 2)
     elif (id == "3"):
-        cv2.line(bar3Layer, (horizonLeftX+pfdOffset*2, horizonLeftY), (horizonRightX+pfdOffset*2, horizonRightY), (255,255,255), 2)
+        cv2.line(bar3Layer, (horizonLeftX+pfdOffset*2, horizonLeftY), (horizonRightX+pfdOffset*2, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
     elif (id == "4"):
         cv2.line(bar4Layer, (horizonLeftX+pfdOffset*3, horizonLeftY), (horizonRightX+pfdOffset*3, horizonRightY), (255,255,255), 2)
     elif (id == "5"):
-        cv2.line(bar5Layer, (horizonLeftX+pfdOffset*4, horizonLeftY), (horizonRightX+pfdOffset*4, horizonRightY), (255,255,255), 2)
+        cv2.line(bar5Layer, (horizonLeftX+pfdOffset*4, horizonLeftY), (horizonRightX+pfdOffset*4, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
 
 def runOneStep(frame):
     startTime = time.time()
