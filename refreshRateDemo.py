@@ -26,6 +26,7 @@ originalImage = cv2.imread("tapes.png")
 bar1Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 bar2Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 bar3Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+bar4Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 bar5Layer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 twoHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 errorLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
@@ -68,6 +69,12 @@ modelRateBottomLeftY = 100
 speedBottomLeftX = 35 
 speedBottomLeftY = 235
 
+ballYawBottomLeftX = 15 
+ballYawBottomLeftY = 645
+
+ballRollBottomLeftX = 15 
+ballRollBottomLeftY = 730
+
 toleranceBottomLeftX = 45
 toleranceBottomLeftY = 370
 
@@ -94,6 +101,10 @@ yaw = 0
 signRoll = 1
 signPitch = 1
 signYaw = 1
+
+maxRoll = 60 # degrees
+minYaw  = 0 # degrees
+maxYaw  = 360 # degrees
 
 bar1Height = 0
 bar2Height = 0
@@ -180,10 +191,6 @@ def stepBarInput(mode, speed, prevHeight, sign):
 
 def stepPfdInput(mode, speed, prevYaw, prevPitch, prevRoll, signYaw, signPitch, signRoll):
 
-    maxRoll = 60 # degrees
-    minYaw  = 0 # degrees
-    maxYaw  = 360 # degrees
-
     if speed == 0:
         speedMultiplier = 1 # full scale (flashing)
     else:
@@ -216,7 +223,7 @@ def stepPfdInput(mode, speed, prevYaw, prevPitch, prevRoll, signYaw, signPitch, 
         nextYaw = minYaw
         signYaw = 1 #change direction smooth mode
        
-    #print(nextYaw)
+    #print(nextRoll)
 
     return (nextYaw,0, nextRoll, signYaw, signPitch, signRoll)    
 
@@ -231,34 +238,34 @@ def drawSphere(barLayer, pfdCenterPixelX,pfdCenterPixelY,pfdTotalWidth,yaw, roll
 
     # draw meridians
     if (yaw <= 90):
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
+        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, -90, 90, (0,255,255), 2, lineType=cv2.LINE_AA) 
     else:
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
+        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, 90, 270, (0,255,255), 2, lineType=cv2.LINE_AA) 
     if (yaw+45 <= 90) or (yaw+45>=180):
-        if yaw+45>180: yaw = yaw-180
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
+       if yaw+45>180: yaw = yaw-180
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, -90, 90, (255,0,255), 2, lineType=cv2.LINE_AA) 
     elif(yaw+45<180):
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, 90, 270, (255,0,255), 2, lineType=cv2.LINE_AA) 
     # if (yaw+60 <= 90) or (yaw+60>1=80):
     #     if yaw+60>180: yaw = yaw-180
     #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+60))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
     # elif(yaw+60<180):
     #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+60))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
     if (yaw+90 <= 90) or (yaw+90>=180):
-        if yaw+90>180: yaw = yaw-180
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
+       if yaw+90>180: yaw = yaw-180
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,0), 2, lineType=cv2.LINE_AA) 
     elif(yaw+90<180):
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,0), 2, lineType=cv2.LINE_AA) 
     # if (yaw+120 <= 90) or (yaw+120>=180):
     #     if yaw+120>180: yaw = yaw-180
     #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+120))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
     # elif(yaw+120<180):
     #    cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+120))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
     if (yaw+135 <= 90) or (yaw+135>=180):
-        if yaw+150>180: yaw = yaw-180
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
+       if yaw+150>180: yaw = yaw-180
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, -90, 90, (0,255,0), 2, lineType=cv2.LINE_AA) 
     elif(yaw+135<180):
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, 90, 270, (0,255,0), 2, lineType=cv2.LINE_AA) 
 
 def drawBar(id, height):
     heightPixels = int(barTotalHeight*height/100)
@@ -419,6 +426,14 @@ def drawLabelsSettings(speed):
     cv2.putText(twoHzLayer, "{: >4}".format(toleranceText), (toleranceBottomLeftX, toleranceBottomLeftY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
 
+    ballYawText = "{:0.0f}/sec".format((maxYaw-minYaw)/speed)
+    cv2.putText(twoHzLayer, "{:>7}".format(ballYawText), (ballYawBottomLeftX, ballYawBottomLeftY),
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)    
+
+    ballRollText = "{:0.0f}/sec".format((2*maxRoll)/speed)
+    cv2.putText(twoHzLayer, "{:>7}".format(ballRollText), (ballRollBottomLeftX, ballRollBottomLeftY),
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+
     bar1RateText = "{:2.1f} Hz".format(nativeRate/bar1Modulo)
     cv2.putText(twoHzLayer, "{:>7}".format(bar1RateText), (bar1LabelX, bar1LabelY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
@@ -576,7 +591,6 @@ def runOneStep(frame):
     mask = pfd1Layer.copy()
     outputImage[mask > 0] = pfd1Layer[mask > 0]
 
-    #drawSphere()
     #cv2.imshow("sphereLayer", sphereLayer)
     #cv2.waitKey(1)
 
@@ -604,7 +618,7 @@ def runOneStep(frame):
     elif key == ord('+') or key == ord('='):
         speed -= 0.25
         if speed <= 0: 
-            speed = 0
+            speed = 0.25
             #print(speed)
     elif key == ord(']'):
         tolerance += 0.01
