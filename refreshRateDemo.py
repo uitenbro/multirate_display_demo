@@ -114,19 +114,19 @@ bar5Height = 0
 
 def initRates(nativeRate):
     # (bar1Modulo, bar2Modulo, bar3Modulo, bar4Modulo, bar5Modulo, twoHzModulo, loopMax)
-    #if nativeRate >= 80:
-    #    return (5, 6, 7, 8, 9, 40, 5040)  #    20,     10,    6.7,   5, 4
-    if nativeRate >= 40:
-        return (2, 3, 4, 5, 8, 20, 120) #    20, 13, 10, 8,        5
-    elif nativeRate >= 30:
-        return (1, 2, 3, 4, 6, 15, 300) # 30,  15,   10,  7.5,     5
-    elif nativeRate >= 25:
-        return (1, 2, 3, 4, 5, 12, 600) #   25,  12.5, 8.3,   6.2, 5
-    elif nativeRate >= 20:
-        return (1, 2, 3, 4, 5, 10, 60)  #    20,     10,    6.7,   5, 4
 
-tolerance = .05
-nativeRate = 30.0 #Hz
+    if nativeRate >= 40:
+        return (2, 3, 4, 5, 8, 20, 120) #  20.0,   13.0,   10.0,    8.0,   5.0
+    elif nativeRate >= 30:
+        return (1, 2, 3, 6, 30, 15, 300) # 30.0,   15.0,   10.0,    5.0,   1.0  
+        #return (1, 2, 3, 4, 6, 15, 300) # 30.0,   15.0,   10.0,    7.5,   5.0
+    elif nativeRate >= 25:
+        return (1, 2, 3, 4, 5, 12, 600) #  25.0,   12.5,    8.3,    6.2,   5.0
+    elif nativeRate >= 20:
+        return (1, 2, 3, 4, 5, 10, 60)  #  20.0,   10.0,    6.7,    5.0,   4.0
+
+tolerance = 0.05  # 5%
+nativeRate = 30.0 # 30Hz
 period = 1/nativeRate
 (bar1Modulo, bar2Modulo, bar3Modulo, bar4Modulo, bar5Modulo, twoHzModulo, loopMax) = initRates(nativeRate)
 
@@ -144,8 +144,7 @@ def stepRate():
         nativeRate = 20    
     elif nativeRate == 20:
         nativeRate = 40
-    #elif nativeRate == 80:
-    #    nativeRate = 40
+
     period = 1/nativeRate
     (bar1Modulo, bar2Modulo, bar3Modulo, bar4Modulo, bar5Modulo, twoHzModulo, loopMax) = initRates(nativeRate)
 
@@ -458,7 +457,7 @@ def drawPFD(id, yaw, pitch, roll):
     global bar4Layer
     global bar5Layer
 
-    yawRange = 180 # +/- degrees
+    #yawRange = 180 # +/- degrees
     pitchRange = 90 # +/- degrees
     rollRange = 90 # +/- degress
     pfdTotalHeight = 300 # pixels
@@ -522,7 +521,7 @@ def runOneStep(frame):
 
     frameInfo = ""
 
-    if (frame % bar1Modulo) == 0: # load balance 20Hz to odd frames for 40Hz native rate
+    if (frame % bar1Modulo) == 0: # TODO: load balance 20Hz to odd frames for 40Hz native rate
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar1Modulo)
         #update data input
         (height, sign) = stepBarInput(mode, speed, height, sign)
@@ -559,14 +558,13 @@ def runOneStep(frame):
         drawLabelsSettings(speed)
     #if (frame % bar1Modulo) == 0:
         
-    #compare displayed values to truth at the end of the frame where inputs where updated
+    # compare displayed values to truth at the end of the frame where inputs where updated
     drawErrorText()
-    #drawPFD(0,0,roll)
 
-    #restore background
+    # restore background
     outputImage = originalImage.copy()
-    #outputImage[mask == 0] = originalImage[mask == 0] # restore only areas that arent in bar1 layer
 
+    # TODO: determine if masking and merging layers can be load balanced above with processing
     #get bar1 layer mask and overlay bar1 layer
     mask = bar1Layer.copy()
     outputImage[mask > 0] = bar1Layer[mask > 0]
@@ -633,8 +631,12 @@ def runOneStep(frame):
         stepRate() 
     elif key == ord('j') or key == 0:
         sign = 1 
+        signYaw = 1
+        signRoll = 1
     elif key == ord('k') or key == 1:
         sign = -1 
+        signYaw = -1
+        signRoll = -1
     elif key == ord('t'):
         mode = "target" 
     elif key == ord('3') or key == 3:
@@ -652,15 +654,17 @@ def runOneStep(frame):
 
     elapsed = time.time()-startTime
     if elapsed < (period):
+        frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + frameInfo
+        frameInfo = "{:>3}:".format(frame) + frameInfo 
         time.sleep(period-elapsed)
         elapsed = time.time()-startTime
-        frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + frameInfo
-        frameInfo = "{:>3}:".format(frame) + frameInfo
+        #frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + frameInfo
+        #frameInfo = "{:>3}:".format(frame) + frameInfo
     else:
         frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + " *overrun* {:>3} msec".format(math.floor((elapsed-period)*1000)) + frameInfo 
         frameInfo = "{:>3}:".format(frame) + frameInfo
 
-        print(frameInfo)
+    print(frameInfo)
 
 frame = 0
 while 1:
