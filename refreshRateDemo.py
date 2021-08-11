@@ -20,7 +20,7 @@ ap.add_argument("-s", "--speed", required=False, default = 2,
 
 args = vars(ap.parse_args())
 
-
+lineType = cv2.LINE_AA
 
 barTotalHeight = 289 #pixels
 barWidth = 20 # pixels
@@ -129,10 +129,10 @@ bar5Layer[60:390, pfdCenterPixelX+4*pfdOffset-halfPfdWidth:pfdCenterPixelX+4*pfd
 bar5Layer[535:originalImage.shape[0], pfdCenterPixelX+4*pfdOffset-halfPfdWidth:pfdCenterPixelX+4*pfdOffset+halfPfdWidth] = (255,255,255) # bottom rectangle around sphere
 bar5Layer[445:490, pfdCenterPixelX+4*pfdOffset-halfPfdWidth:pfdCenterPixelX+4*pfdOffset+halfPfdWidth] = (255,255,255) #  rectangle around bar value % display line
 
-twoHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
-twoHzLayer[390:450, pfdCenterPixelX-halfPfdWidth:originalImage.shape[1]] = (255,255,255) # rectangle around 2hz display line
-twoHzLayer[0:60, pfdCenterPixelX-halfPfdWidth:originalImage.shape[1]] = (255,255,255) # rectangle around top labels
-twoHzLayer[0:originalImage.shape[0], 0:240] = (255,255,255) # rectangle around side labels
+oneHzLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
+oneHzLayer[390:450, pfdCenterPixelX-halfPfdWidth:originalImage.shape[1]] = (255,255,255) # rectangle around 2hz display line
+oneHzLayer[0:60, pfdCenterPixelX-halfPfdWidth:originalImage.shape[1]] = (255,255,255) # rectangle around top labels
+oneHzLayer[0:originalImage.shape[0], 0:240] = (255,255,255) # rectangle around side labels
 
 errorLayer = np.zeros(originalImage.shape, dtype=originalImage.dtype)
 errorLayer[495:530, pfdCenterPixelX-halfPfdWidth:originalImage.shape[1]] = (255,255,255) #  rectangle around error display line
@@ -254,49 +254,51 @@ def stepPfdInput(mode, speed, prevYaw, prevPitch, prevRoll, signYaw, signPitch, 
     return (nextYaw,0, nextRoll, signYaw, signPitch, signRoll)    
 
 def drawSphere(barLayer, pfdCenterPixelX,pfdCenterPixelY,pfdTotalWidth,yaw, roll):   
+    global lineType
 
     pfdCenterPixelY=pfdCenterPixelY+425
     # draw outside circle boundary
-    cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2), int(pfdTotalWidth/2)), 0, 0, 360, (255,255,255), 2, lineType=cv2.LINE_AA) 
+    cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2), int(pfdTotalWidth/2)), 0, 0, 360, (255,255,255), 2, lineType=lineType) 
 
     yaw = yaw%180
     #print (yaw)
 
     # draw meridians
     if (yaw <= 90):
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, -90, 90, (0,255,255), 2, lineType=cv2.LINE_AA) 
+        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, -90, 90, (0,255,255), 2, lineType=lineType) 
     else:
-        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, 90, 270, (0,255,255), 2, lineType=cv2.LINE_AA) 
+        cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw))), int(pfdTotalWidth/2)), roll, 90, 270, (0,255,255), 2, lineType=lineType) 
     if (yaw+45 <= 90) or (yaw+45>=180):
        if yaw+45>180: yaw = yaw-180
-       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, -90, 90, (255,0,255), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, -90, 90, (255,0,255), 2, lineType=lineType) 
     elif(yaw+45<180):
-       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, 90, 270, (255,0,255), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+45))), int(pfdTotalWidth/2)), roll, 90, 270, (255,0,255), 2, lineType=lineType) 
     # if (yaw+60 <= 90) or (yaw+60>1=80):
     #     if yaw+60>180: yaw = yaw-180
-    #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+60))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
+    #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+60))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=lineType) 
     # elif(yaw+60<180):
-    #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+60))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
+    #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+60))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=lineType) 
     if (yaw+90 <= 90) or (yaw+90>=180):
        if yaw+90>180: yaw = yaw-180
-       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,0), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,0), 2, lineType=lineType) 
     elif(yaw+90<180):
-       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,0), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+90))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,0), 2, lineType=lineType) 
     # if (yaw+120 <= 90) or (yaw+120>=180):
     #     if yaw+120>180: yaw = yaw-180
-    #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+120))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=cv2.LINE_AA) 
+    #     cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+120))), int(pfdTotalWidth/2)), roll, -90, 90, (255,255,255), 2, lineType=lineType) 
     # elif(yaw+120<180):
-    #    cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+120))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=cv2.LINE_AA) 
+    #    cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+120))), int(pfdTotalWidth/2)), roll, 90, 270, (255,255,255), 2, lineType=lineType) 
     if (yaw+135 <= 90) or (yaw+135>=180):
        if yaw+150>180: yaw = yaw-180
-       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, -90, 90, (0,255,0), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, -90, 90, (0,255,0), 2, lineType=lineType) 
     elif(yaw+135<180):
-       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, 90, 270, (0,255,0), 2, lineType=cv2.LINE_AA) 
+       cv2.ellipse(barLayer, (pfdCenterPixelX,pfdCenterPixelY), (int(pfdTotalWidth/2*math.sin(math.radians(yaw+135))), int(pfdTotalWidth/2)), roll, 90, 270, (0,255,0), 2, lineType=lineType) 
 
 def drawBar(id, height):
     heightPixels = int(barTotalHeight*height/100)
     #print(heightPixels)
     global bar1Height, bar2Height, bar3Height, bar4Height, bar5Height
+    global lineType
     targetHeight = int(11/15*barTotalHeight)
 
     if (id == "1"):
@@ -339,26 +341,27 @@ def drawBar(id, height):
     #print("u: ", bar1Height, bar2Height, bar3Height, bar4Height, bar5Height)
 
 def drawDisplayText(id, height):
+    global lineType
 
     height = "{: 2.1f}".format((maxDisplayValue*height/100))
     if (id == "1") or (id == "0"):
         cv2.putText(outputImage, "{:>4}".format(height), (value1BottomLeftX, value1BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "2") or (id == "0"):
         cv2.putText(outputImage, "{:>4}".format(height), (value2BottomLeftX, value2BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "3") or (id == "0"):
         cv2.putText(outputImage, "{:>4}".format(height), (value3BottomLeftX, value3BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "4") or (id == "0"):
         cv2.putText(outputImage, "{:>4}".format(height), (value4BottomLeftX, value4BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "5") or (id == "0"):
         cv2.putText(outputImage, "{:>4}".format(height), (value5BottomLeftX, value5BottomLeftY),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)             
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)             
 
 def drawErrorText():
-    global errorLayer
+    global lineType
     #print(bar1Height, bar2Height, bar3Height, bar4Height, bar5Height)
 
     if mode == "target":
@@ -378,7 +381,7 @@ def drawErrorText():
     else:
         color = (255, 255, 255)
     cv2.putText(outputImage, "{:>4}".format(bar1ErrorText), (value1BottomLeftX, value1BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=lineType)
 
     bar2Error = abs(truth - bar2Height)
     bar2ErrorText = "{:2.1f}%".format(bar2Error)
@@ -388,7 +391,7 @@ def drawErrorText():
     else:
         color = (255, 255, 255)
     cv2.putText(outputImage, "{:>4}".format(bar2ErrorText), (value2BottomLeftX, value2BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=lineType)
 
     bar3Error = abs(truth - bar3Height)
     bar3ErrorText = "{:2.1f}%".format(bar3Error)
@@ -398,7 +401,7 @@ def drawErrorText():
     else:
         color = (255, 255, 255)        
     cv2.putText(outputImage, "{:>4}".format(bar3ErrorText), (value3BottomLeftX, value3BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=lineType)
 
     bar4Error = abs(truth - bar4Height)
     bar4ErrorText = "{:2.1f}%".format(bar4Error)
@@ -408,7 +411,7 @@ def drawErrorText():
     else:
         color = (255, 255, 255)
     cv2.putText(outputImage, "{:>4}".format(bar4ErrorText), (value4BottomLeftX, value4BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=lineType)
 
     bar5Error = abs(truth - bar5Height)
     bar5ErrorText = "{:2.1f}%".format(bar5Error)
@@ -418,63 +421,65 @@ def drawErrorText():
     else:
         color = (255, 255, 255)
     cv2.putText(outputImage, "{:>4}".format(bar5ErrorText), (value5BottomLeftX, value5BottomLeftY + 2*textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=cv2.LINE_AA)             
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, color, 2, lineType=lineType)             
 
 def drawBarValueText(id, height):
+    global lineType
 
     heightText = "{: >4.1f}".format(height/100*maxDisplayValue) 
     if (id == "1"):
         cv2.putText(outputImage, heightText, (value1BottomLeftX-10, value1BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     elif (id == "2"):
         cv2.putText(outputImage, heightText, (value2BottomLeftX-10, value2BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     elif (id == "3"):
         cv2.putText(outputImage, heightText, (value3BottomLeftX-10, value3BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     elif (id == "4"):
         cv2.putText(outputImage, heightText, (value4BottomLeftX-10, value4BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     elif (id == "5"):
         cv2.putText(outputImage, heightText, (value5BottomLeftX-10, value5BottomLeftY + textOffset),
-            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)             
+            cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)             
 
 def drawLabelsSettings(speed):
+    global lineType
 
     modelRateText = "{:2.1f} Hz".format(nativeRate)
     cv2.putText(outputImage, "{:>5}".format(modelRateText), (modelRateBottomLeftX, modelRateBottomLeftY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
 
     speedText = "{:1.2f} sec".format(speed)
     cv2.putText(outputImage, "{: >8}".format(speedText), (speedBottomLeftX, speedBottomLeftY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     toleranceText = "{:.0f}%".format(tolerance*100)
     cv2.putText(outputImage, "{: >4}".format(toleranceText), (toleranceBottomLeftX, toleranceBottomLeftY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
 
     ballYawText = "{:0.0f}/sec".format((maxYaw-minYaw)/speed)
     cv2.putText(outputImage, "{:>7}".format(ballYawText), (ballYawBottomLeftX, ballYawBottomLeftY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)    
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)    
 
     ballRollText = "{:0.0f}/sec".format((2*maxRoll)/speed)
     cv2.putText(outputImage, "{:>7}".format(ballRollText), (ballRollBottomLeftX, ballRollBottomLeftY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
 
     bar1RateText = "{:2.1f} Hz".format(nativeRate/bar1Modulo)
     cv2.putText(outputImage, "{:>7}".format(bar1RateText), (bar1LabelX, bar1LabelY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     bar2RateText = "{:2.1f} Hz".format(nativeRate/bar2Modulo)
     cv2.putText(outputImage, "{:>7}".format(bar2RateText), (bar2LabelX, bar2LabelY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     bar3RateText = "{:2.1f} Hz".format(nativeRate/bar3Modulo)
     cv2.putText(outputImage, "{:>7}".format(bar3RateText), (bar3LabelX, bar3LabelY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     bar4RateText = "{:2.1f} Hz".format(nativeRate/bar4Modulo)
     cv2.putText(outputImage, "{:>7}".format(bar4RateText), (bar4LabelX, bar4LabelY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2)
     bar5RateText = "{:2.1f} Hz".format(nativeRate/bar5Modulo)
     cv2.putText(outputImage, "{:>7}".format(bar5RateText), (bar5LabelX, bar5LabelY),
-        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
 
 def drawPFD(id, yaw, pitch, roll):
     global pfd1Layer
@@ -484,6 +489,7 @@ def drawPFD(id, yaw, pitch, roll):
     global bar4Layer
     global bar5Layer
     global pfdOffset
+    global lineType
 
     #yawRange = 180 # +/- degrees
     pitchRange = 90 # +/- degrees
@@ -507,19 +513,19 @@ def drawPFD(id, yaw, pitch, roll):
     #print (roll)
 
     if (id == "1"):
-        cv2.line(outputImage, (horizonLeftX, horizonLeftY), (horizonRightX, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
+        cv2.line(outputImage, (horizonLeftX, horizonLeftY), (horizonRightX, horizonRightY), (255,255,255), 2, lineType=lineType)
         drawSphere(outputImage, pfdCenterPixelX,pfdCenterPixelY,pfdTotalWidth,yaw, roll)
     elif (id == "2"):
-        cv2.line(outputImage, (horizonLeftX+pfdOffset, horizonLeftY), (horizonRightX+pfdOffset, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
+        cv2.line(outputImage, (horizonLeftX+pfdOffset, horizonLeftY), (horizonRightX+pfdOffset, horizonRightY), (255,255,255), 2, lineType=lineType)
         drawSphere(outputImage, pfdCenterPixelX+pfdOffset,pfdCenterPixelY,pfdTotalWidth,yaw, roll)
     elif (id == "3"):
-        cv2.line(outputImage, (horizonLeftX+pfdOffset*2, horizonLeftY), (horizonRightX+pfdOffset*2, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
+        cv2.line(outputImage, (horizonLeftX+pfdOffset*2, horizonLeftY), (horizonRightX+pfdOffset*2, horizonRightY), (255,255,255), 2, lineType=lineType)
         drawSphere(outputImage, pfdCenterPixelX+pfdOffset*2,pfdCenterPixelY,pfdTotalWidth,yaw, roll)
     elif (id == "4"):
-        cv2.line(outputImage, (horizonLeftX+pfdOffset*3, horizonLeftY), (horizonRightX+pfdOffset*3, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
+        cv2.line(outputImage, (horizonLeftX+pfdOffset*3, horizonLeftY), (horizonRightX+pfdOffset*3, horizonRightY), (255,255,255), 2, lineType=lineType)
         drawSphere(outputImage, pfdCenterPixelX+pfdOffset*3,pfdCenterPixelY,pfdTotalWidth,yaw, roll)
     elif (id == "5"):
-        cv2.line(outputImage, (horizonLeftX+pfdOffset*4, horizonLeftY), (horizonRightX+pfdOffset*4, horizonRightY), (255,255,255), 2, lineType=cv2.LINE_AA)
+        cv2.line(outputImage, (horizonLeftX+pfdOffset*4, horizonLeftY), (horizonRightX+pfdOffset*4, horizonRightY), (255,255,255), 2, lineType=lineType)
         drawSphere(outputImage, pfdCenterPixelX+pfdOffset*4,pfdCenterPixelY,pfdTotalWidth,yaw, roll)
 
 
@@ -538,11 +544,12 @@ def runOneStep(frame):
     global bar3Layer
     global bar4Layer
     global bar5Layer
-    global twoHzLayer
+    global oneHzLayer
     global errorLayer
     global pfd1Layer
     global sphereLayer
     global outputImage
+    global lineType
 
     frameInfo = ""
 
@@ -576,13 +583,12 @@ def runOneStep(frame):
         outputImage[bar5Layer > 0] = originalImage[bar5Layer > 0]
         drawBar("5", height)
         drawPFD("5", yaw, pitch, roll)
-    if (frame % oneHzModulo) == 0: # clear 2 Hz layers and draw 2 Hz elements
+    if (frame % oneHzModulo) == 0: # clear 1 Hz layers and draw 1 Hz elements
         frameInfo += " {:0.2f}Hz".format(nativeRate/oneHzModulo)
-        outputImage[twoHzLayer > 0] = originalImage[twoHzLayer > 0]
+        outputImage[oneHzLayer > 0] = originalImage[oneHzLayer > 0]
         #drawDisplayText("0", height)
-        # TODO load balance the label writing to another frame
         drawLabelsSettings(speed)
-        #outputImage[twoHzLayer > 0] = twoHzLayer[twoHzLayer > 0]
+        #outputImage[oneHzLayer > 0] = oneHzLayer[oneHzLayer > 0]
     #if (frame % bar1Modulo) == 0:
         
     # compare displayed values to truth at the end of the frame where inputs where updated
@@ -592,7 +598,7 @@ def runOneStep(frame):
 
     # cv2.imshow("errorLayer", errorLayer)
     # cv2.waitKey(1)
-    # cv2.imshow("twoHzLayer", twoHzLayer)
+    # cv2.imshow("oneHzLayer", oneHzLayer)
     # cv2.waitKey(1)
     # cv2.imshow("bar3Layer", bar3Layer)
     # cv2.waitKey(1)
@@ -649,6 +655,17 @@ def runOneStep(frame):
         roll += 5
     elif key == ord('2') or key == 2:
         roll -= 5
+    elif key == ord('a'):
+        if (lineType==cv2.LINE_AA):
+            lineType=cv2.LINE_8
+            print("line_8")
+        elif (lineType==cv2.LINE_8):
+            lineType=cv2.LINE_4
+            print("line_4")
+        elif (lineType==cv2.LINE_4):
+            lineType=cv2.LINE_AA
+            print("line_aa")
+
     elif key == 27:
         exit()
     elif key != -1:
@@ -656,6 +673,7 @@ def runOneStep(frame):
         print ("(spacebar) pause\n(s) smooth mode\n(r) random mode\n(t) target mode")
         print ("(-/+) data speed control\n([/]) tolerance control")
         print ("(j/up-arrow) up\n(k/down-arrow) down\n(n) step model rate")
+        print ("(a) toggle anit-alias (line_aa, line_8, line_4)")
         print ("(esc) quit\n\n")
 
     elapsed = time.time()-startTime
