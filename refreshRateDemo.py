@@ -10,6 +10,7 @@ import time
 import math
 import random
 import viz
+import threading
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -156,7 +157,7 @@ tolerance = 0.05  # 5%
 nativeRate = 40.0 # 30Hz
 period = 1/nativeRate
 (bar1Modulo, bar2Modulo, bar3Modulo, bar4Modulo, bar5Modulo, oneHzModulo, loopMax) = initRates(nativeRate)
-
+jitter = 0.025 # 1%
 
 def stepRate():
     global nativeRate
@@ -426,7 +427,7 @@ def drawErrorText():
 def drawBarValueText(id, height):
     global lineType
 
-    heightText = "{: >4.1f}".format(height/100*maxDisplayValue) 
+    heightText = "{: >5.1f}".format(height/100*maxDisplayValue) 
     if (id == "1"):
         cv2.putText(outputImage, heightText, (value1BottomLeftX-10, value1BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
@@ -454,7 +455,7 @@ def drawLabelsSettings(speed):
     cv2.putText(outputImage, "{: >8}".format(speedText), (speedBottomLeftX, speedBottomLeftY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     toleranceText = "{:.0f}%".format(tolerance*100)
-    cv2.putText(outputImage, "{: >4}".format(toleranceText), (toleranceBottomLeftX, toleranceBottomLeftY),
+    cv2.putText(outputImage, "{: >5}".format(toleranceText), (toleranceBottomLeftX, toleranceBottomLeftY),
         cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
 
     ballYawText = "{:0.0f}/sec".format((maxYaw-minYaw)/speed)
@@ -528,6 +529,217 @@ def drawPFD(id, yaw, pitch, roll):
         cv2.line(outputImage, (horizonLeftX+pfdOffset*4, horizonLeftY), (horizonRightX+pfdOffset*4, horizonRightY), (255,255,255), 2, lineType=lineType)
         drawSphere(outputImage, pfdCenterPixelX+pfdOffset*4,pfdCenterPixelY,pfdTotalWidth,yaw, roll)
 
+def runRateOneThread():
+    global nativeRate
+    global jitter
+    global keepRunning
+
+    startTime = 0
+
+    while keepRunning:
+        threadOneLock.acquire()
+        deadlineDuration =1/(nativeRate/bar1Modulo)
+        now = time.time()
+        totalTime = now - startTime
+        startTime = now
+
+        outputImage[bar1Layer > 0] = originalImage[bar1Layer > 0]
+        drawBar("1", height)
+        drawPFD("1", yaw, pitch, roll)
+        
+        elapsed = time.time()-startTime
+        
+        if (totalTime < deadlineDuration*(1-jitter) or totalTime > deadlineDuration*(1+jitter)):
+            frameInfo = "{:>3}:".format(frame)
+            frameInfo += " {: >5.2f}Hz".format(nativeRate/bar1Modulo)
+            frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))
+            frameInfo += " {: >7.2f} msec".format(totalTime*1000)
+            frameInfo += " ** violation ** {: >7.2f} msec".format((totalTime-deadlineDuration)*1000)
+            frameInfo += " > {: >7.2f}%".format(jitter*100)
+            print(frameInfo)
+
+    print("Finish One")
+
+def runRateTwoThread():
+    global nativeRate
+    global jitter
+    global keepRunning
+
+    startTime = 0
+
+    while keepRunning:
+        threadTwoLock.acquire()
+        deadlineDuration =1/(nativeRate/bar2Modulo)
+        now = time.time()
+        totalTime = now - startTime
+        startTime = now
+
+        outputImage[bar2Layer > 0] = originalImage[bar2Layer > 0]
+        drawBar("2", height)
+        drawPFD("2", yaw, pitch, roll)
+        
+        elapsed = time.time()-startTime
+        
+        if (totalTime < deadlineDuration*(1-jitter) or totalTime > deadlineDuration*(1+jitter)):
+            frameInfo = "{:>3}:".format(frame)
+            frameInfo += " {: >5.2f}Hz".format(nativeRate/bar2Modulo)
+            frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))
+            frameInfo += " {: >7.2f} msec".format(totalTime*1000)
+            frameInfo += " ** violation ** {: >7.2f} msec".format((totalTime-deadlineDuration)*1000)
+            frameInfo += " > {: >7.2f}%".format(jitter*100)
+            print(frameInfo)
+
+    print("Finish Two")
+
+
+def runRateThreeThread():
+    global nativeRate
+    global jitter
+    global keepRunning
+
+    startTime = 0
+
+    while keepRunning:
+        threadThreeLock.acquire()
+        deadlineDuration =1/(nativeRate/bar3Modulo)
+        now = time.time()
+        totalTime = now - startTime
+        startTime = now
+
+        outputImage[bar3Layer > 0] = originalImage[bar3Layer > 0]
+        drawBar("3", height)
+        drawPFD("3", yaw, pitch, roll)
+        
+        elapsed = time.time()-startTime
+        
+        if (totalTime < deadlineDuration*(1-jitter) or totalTime > deadlineDuration*(1+jitter)):
+            frameInfo = "{:>3}:".format(frame)
+            frameInfo += " {: >5.2f}Hz".format(nativeRate/bar3Modulo)
+            frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))
+            frameInfo += " {: >7.2f} msec".format(totalTime*1000)            
+            frameInfo += " ** violation ** {: >7.2f} msec".format((totalTime-deadlineDuration)*1000)
+            frameInfo += " > {: >7.2f}%".format(jitter*100)
+            print(frameInfo)
+
+    print("Finish Three")
+
+def runRateFourThread():
+    global nativeRate
+    global jitter
+    global keepRunning
+
+    startTime = 0
+
+    while keepRunning:
+        threadFourLock.acquire()
+        deadlineDuration =1/(nativeRate/bar4Modulo)
+        now = time.time()
+        totalTime = now - startTime
+        startTime = now
+
+        outputImage[bar4Layer > 0] = originalImage[bar4Layer > 0]
+        drawBar("4", height)
+        drawPFD("4", yaw, pitch, roll)
+        
+        elapsed = time.time()-startTime
+        
+        if (totalTime < deadlineDuration*(1-jitter) or totalTime > deadlineDuration*(1+jitter)):
+            frameInfo = "{:>3}:".format(frame)
+            frameInfo += " {: >5.2f}Hz".format(nativeRate/bar4Modulo)
+            frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))
+            frameInfo += " {: >7.2f} msec".format(totalTime*1000)
+            frameInfo += " ** violation ** {: >7.2f} msec".format((totalTime-deadlineDuration)*1000)
+            frameInfo += " > {: >7.2f}%".format(jitter*100)
+            print(frameInfo)
+
+    print("Finish Four")
+
+def runRateFiveThread():
+    global nativeRate
+    global jitter
+    global keepRunning
+
+    startTime = 0
+
+    while keepRunning:
+        threadFiveLock.acquire()
+        deadlineDuration =1/(nativeRate/bar5Modulo)
+        now = time.time()
+        totalTime = now - startTime
+        startTime = now
+
+        outputImage[bar5Layer > 0] = originalImage[bar5Layer > 0]
+        drawBar("5", height)
+        drawPFD("5", yaw, pitch, roll)
+        
+        elapsed = time.time()-startTime
+        
+        if (totalTime < deadlineDuration*(1-jitter) or totalTime > deadlineDuration*(1+jitter)):
+            frameInfo = "{:>3}:".format(frame)
+            frameInfo += " {: >5.2f}Hz".format(nativeRate/bar5Modulo)
+            frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))
+            frameInfo += " {: >7.2f} msec".format(totalTime*1000)
+            frameInfo += " ** violation ** {: >7.2f} msec".format((totalTime-deadlineDuration)*1000)
+            frameInfo += " > {: >7.2f}%".format(jitter*100)
+            print(frameInfo)
+
+    print("Finish Five")
+
+def runLowThread():
+    global nativeRate
+    global jitter
+    global keepRunning
+
+    startTime = 0
+
+    while keepRunning:
+        threadLowLock.acquire()
+        deadlineDuration =1/(nativeRate/oneHzModulo)
+        now = time.time()
+        totalTime = now - startTime
+        startTime = now
+
+        outputImage[oneHzLayer > 0] = originalImage[oneHzLayer > 0]
+        #drawDisplayText("0", height)
+        drawLabelsSettings(speed)
+        
+        elapsed = time.time()-startTime
+        
+        if (totalTime < deadlineDuration*(1-jitter) or totalTime > deadlineDuration*(1+jitter)):
+            frameInfo = "{:>3}:".format(frame)
+            frameInfo += " {: >5.2f}Hz".format(nativeRate/bar5Modulo)
+            frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))
+            frameInfo += " {: >7.2f} msec".format(totalTime*1000)
+            frameInfo += " ** violation ** {: >7.2f} msec".format((totalTime-deadlineDuration)*1000)
+            frameInfo += " > {: >7.2f}%".format(jitter*100)
+            print(frameInfo)
+
+    print("Finish Low")
+
+threadOne = threading.Thread(target=runRateOneThread)
+threadOneStarted = False
+threadOneLock = threading.Lock()
+
+threadTwo = threading.Thread(target=runRateTwoThread)
+threadTwoStarted = False
+threadTwoLock = threading.Lock()
+
+threadThree = threading.Thread(target=runRateThreeThread)
+threadThreeStarted = False
+threadThreeLock = threading.Lock()
+
+threadFour = threading.Thread(target=runRateFourThread)
+threadFourStarted = False
+threadFourLock = threading.Lock()
+
+threadFive = threading.Thread(target=runRateFiveThread)
+threadFiveStarted = False
+threadFiveLock = threading.Lock()
+
+threadLow = threading.Thread(target=runLowThread)
+threadLowStarted = False
+threadLowLock = threading.Lock()
+
 
 def runOneStep(frame):
     startTime = time.time()
@@ -550,47 +762,57 @@ def runOneStep(frame):
     global sphereLayer
     global outputImage
     global lineType
-
+    global threadOneStarted
+    global threadTwoStarted
+    global threadThreeStarted
+    global threadFourStarted
+    global threadFiveStarted
+    global threadLowStarted
+    global keepRunning
+    
     frameInfo = ""
 
     if ((frame-1) % bar1Modulo) == 0: # load balance highest rate to odd frames
-        frameInfo += " {:0.2f}Hz".format(nativeRate/bar1Modulo)
         #update data input
         (height, sign) = stepBarInput(mode, speed, height, sign)
         (yaw, pitch, roll, signYaw, signPitch, signRoll) = stepPfdInput(mode, speed, yaw, pitch, roll, signYaw, signPitch, signRoll)
         
-        # reset bar layer to background then draw bar layer elements to output
-        outputImage[bar1Layer > 0] = originalImage[bar1Layer > 0]
-        drawBar("1", height)
-        drawPFD("1", yaw, pitch, roll)
+        frameInfo += " {:0.2f}Hz".format(nativeRate/bar1Modulo)
+        if (threadOneStarted == False):
+            threadOne.start()
+            threadOneStarted = True
+        threadOneLock.release()
     if (frame % bar2Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar2Modulo)
-        outputImage[bar2Layer > 0] = originalImage[bar2Layer > 0]
-        drawBar("2", height)
-        drawPFD("2", yaw, pitch, roll)
+        if (threadTwoStarted == False):
+            threadTwo.start()
+            threadTwoStarted = True
+        threadTwoLock.release()
     if (frame % bar3Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar3Modulo)
-        outputImage[bar3Layer > 0] = originalImage[bar3Layer > 0]
-        drawBar("3", height)
-        drawPFD("3", yaw, pitch, roll)
+        if (threadThreeStarted == False):
+            threadThree.start()
+            threadThreeStarted = True
+        threadThreeLock.release()
     if (frame % bar4Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar4Modulo)
-        outputImage[bar4Layer > 0] = originalImage[bar4Layer > 0]
-        drawBar("4", height)
-        drawPFD("4", yaw, pitch, roll)
+        if (threadFourStarted == False):
+            threadFour.start()
+            threadFourStarted = True
+        threadFourLock.release()
     if (frame % bar5Modulo) == 0:
         frameInfo += " {:0.2f}Hz".format(nativeRate/bar5Modulo)
-        outputImage[bar5Layer > 0] = originalImage[bar5Layer > 0]
-        drawBar("5", height)
-        drawPFD("5", yaw, pitch, roll)
+        if (threadFiveStarted == False):
+            threadFive.start()
+            threadFiveStarted = True
+        threadFiveLock.release()
     if (frame % oneHzModulo) == 0: # clear 1 Hz layers and draw 1 Hz elements
         frameInfo += " {:0.2f}Hz".format(nativeRate/oneHzModulo)
-        outputImage[oneHzLayer > 0] = originalImage[oneHzLayer > 0]
-        #drawDisplayText("0", height)
-        drawLabelsSettings(speed)
-        #outputImage[oneHzLayer > 0] = oneHzLayer[oneHzLayer > 0]
-    #if (frame % bar1Modulo) == 0:
-        
+        if (threadLowStarted == False):
+            threadLow.start()
+            threadLowStarted = True
+        threadLowLock.release()
+
     # compare displayed values to truth at the end of the frame where inputs where updated
     #outputImage[errorLayer > 0] = originalImage[errorLayer > 0]
     #drawErrorText()
@@ -667,6 +889,21 @@ def runOneStep(frame):
             print("line_aa")
 
     elif key == 27:
+        keepRunning = False
+        print("Waiting for threads")
+        threadOneLock.release()
+        threadTwoLock.release()
+        threadThreeLock.release()
+        threadFourLock.release()
+        threadFiveLock.release()
+        threadLowLock.release()
+        threadOne.join()
+        threadTwo.join()
+        threadThree.join()
+        threadFour.join()
+        threadFive.join()
+        threadLow.join()
+        print("Finished")
         exit()
     elif key != -1:
         print ("\n\n(", key, chr(key), ") function not found\n")
@@ -676,22 +913,26 @@ def runOneStep(frame):
         print ("(a) toggle anit-alias (line_aa, line_8, line_4)")
         print ("(esc) quit\n\n")
 
-    elapsed = time.time()-startTime
-    if elapsed < (period):
-        frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + frameInfo
-        frameInfo = "{:>3}:".format(frame) + frameInfo 
-        time.sleep(period-elapsed)
-        elapsed = time.time()-startTime
-        #frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + frameInfo
-        #frameInfo = "{:>3}:".format(frame) + frameInfo
+    now = time.time()
+    elapsed = now-startTime
+    schedText = frameInfo
+    if elapsed < (period-0.0005): # tuning by 5usec
+        time.sleep(period-elapsed-0.0005) # tuning by 5usec
+        totalTime = time.time()-startTime
+        frameInfo = "{: >3}:    Exec ".format(frame)
+        frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))        
+        frameInfo += " {: >7.2f} msec ".format(totalTime*1000) + schedText      
     else:
-        frameInfo = " {:>3} msec".format(math.floor(elapsed*1000)) + " *overrun* {:>3} msec".format(math.floor((elapsed-period)*1000)) + frameInfo 
-        frameInfo = "{:>3}:".format(frame) + frameInfo
+        totalTime = elapsed
+        frameInfo = "{: >3}:    Exec ".format(frame)
+        frameInfo += " {: >5.2f} msec".format(math.floor(elapsed*1000))        
+        frameInfo += " {: >7.2f} msec".format(totalTime*1000) + " ** overrun ** {: >5.2f} msec ".format((elapsed - period)*1000) + schedText
 
         print(frameInfo)
 
 frame = 0
-while 1:
+keepRunning = True
+while keepRunning:
     runOneStep(frame)
     frame+=1
     if frame >= loopMax:
