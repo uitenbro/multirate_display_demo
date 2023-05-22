@@ -1,3 +1,6 @@
+workon du
+python3 refreshRateDemo.py --mode "random"
+
 Python 3.9.1
 
 OpenCV 4.5.1

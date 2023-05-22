@@ -151,10 +151,12 @@ def initRates(nativeRate):
     elif nativeRate >= 25:
         return (1, 2, 3, 4, 5, 25, 600)  # 25.0,   12.5,    8.3,    6.2,   5.0
     elif nativeRate >= 20:
-        return (1, 2, 3, 4, 5, 20, 60)   # 20.0,   10.0,    6.7,    5.0,   4.0
+        return (1, 2, 3, 4, 5, 20, 60)   # 20.0,   10.0,    6.7,    5.0,   4.0    
+    elif nativeRate >= 10:
+        return (1, 2, 3, 5, 10, 10, 1000)# 10.0,    5.0,    3.3,    2.0,   1.0
 
 tolerance = 0.05  # 5%
-nativeRate = 40.0 # 30Hz
+nativeRate = 10.0 # 30Hz
 period = 1/nativeRate
 (bar1Modulo, bar2Modulo, bar3Modulo, bar4Modulo, bar5Modulo, oneHzModulo, loopMax) = initRates(nativeRate)
 jitter = 0.025 # 1%
@@ -171,6 +173,8 @@ def stepRate():
     elif nativeRate == 25:
         nativeRate = 20    
     elif nativeRate == 20:
+        nativeRate = 10
+    elif nativeRate == 10:
         nativeRate = 40
 
     period = 1/nativeRate
@@ -201,10 +205,10 @@ def stepBarInput(mode, speed, prevHeight, sign):
         nextHeight = height + sign*speedMultiplier*maxHeight
     else: # mode = random
         randomSign = random.randrange(-1, 3) # set random up or down
-        if (randomSign > 0): #up
-            nextHeight = height + speedMultiplier*maxHeight
+        if (randomSign > 0): #up====
+            nextHeight = maxHeight/2 + random.randrange(0, int(speedMultiplier*maxHeight))
         else: # down 
-            nextHeight = height - speedMultiplier*maxHeight
+            nextHeight = maxHeight/2 - random.randrange(0, int(speedMultiplier*maxHeight))
         #print(randomSign, nextHeight)
 
     if (nextHeight > maxHeight):
@@ -346,19 +350,19 @@ def drawDisplayText(id, height):
 
     height = "{: 2.1f}".format((maxDisplayValue*height/100))
     if (id == "1") or (id == "0"):
-        cv2.putText(outputImage, "{:>4}".format(height), (value1BottomLeftX, value1BottomLeftY),
+        cv2.putText(outputImage, "{:>4.1f}".format(height), (value1BottomLeftX, value1BottomLeftY),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "2") or (id == "0"):
-        cv2.putText(outputImage, "{:>4}".format(height), (value2BottomLeftX, value2BottomLeftY),
+        cv2.putText(outputImage, "{:>4.1f}".format(height), (value2BottomLeftX, value2BottomLeftY),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "3") or (id == "0"):
-        cv2.putText(outputImage, "{:>4}".format(height), (value3BottomLeftX, value3BottomLeftY),
+        cv2.putText(outputImage, "{:>4.1f}".format(height), (value3BottomLeftX, value3BottomLeftY),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "4") or (id == "0"):
-        cv2.putText(outputImage, "{:>4}".format(height), (value4BottomLeftX, value4BottomLeftY),
+        cv2.putText(outputImage, "{:>4.1f}".format(height), (value4BottomLeftX, value4BottomLeftY),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
     if (id == "5") or (id == "0"):
-        cv2.putText(outputImage, "{:>4}".format(height), (value5BottomLeftX, value5BottomLeftY),
+        cv2.putText(outputImage, "{:>4.1f}".format(height), (value5BottomLeftX, value5BottomLeftY),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)             
 
 def drawErrorText():
@@ -427,7 +431,7 @@ def drawErrorText():
 def drawBarValueText(id, height):
     global lineType
 
-    heightText = "{: >5.1f}".format(height/100*maxDisplayValue) 
+    heightText = "{:0>5.1f}".format(height/100*maxDisplayValue) 
     if (id == "1"):
         cv2.putText(outputImage, heightText, (value1BottomLeftX-10, value1BottomLeftY + textOffset),
             cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 255), 2, lineType=lineType)
@@ -545,7 +549,7 @@ def runRateOneThread():
 
         outputImage[bar1Layer > 0] = originalImage[bar1Layer > 0]
         drawBar("1", height)
-        drawPFD("1", yaw, pitch, roll)
+        #drawPFD("1", yaw, pitch, roll)
         
         elapsed = time.time()-startTime
         
@@ -576,7 +580,7 @@ def runRateTwoThread():
 
         outputImage[bar2Layer > 0] = originalImage[bar2Layer > 0]
         drawBar("2", height)
-        drawPFD("2", yaw, pitch, roll)
+        #drawPFD("2", yaw, pitch, roll)
         
         elapsed = time.time()-startTime
         
@@ -608,7 +612,7 @@ def runRateThreeThread():
 
         outputImage[bar3Layer > 0] = originalImage[bar3Layer > 0]
         drawBar("3", height)
-        drawPFD("3", yaw, pitch, roll)
+        #drawPFD("3", yaw, pitch, roll)
         
         elapsed = time.time()-startTime
         
@@ -639,7 +643,7 @@ def runRateFourThread():
 
         outputImage[bar4Layer > 0] = originalImage[bar4Layer > 0]
         drawBar("4", height)
-        drawPFD("4", yaw, pitch, roll)
+        #drawPFD("4", yaw, pitch, roll)
         
         elapsed = time.time()-startTime
         
@@ -670,7 +674,7 @@ def runRateFiveThread():
 
         outputImage[bar5Layer > 0] = originalImage[bar5Layer > 0]
         drawBar("5", height)
-        drawPFD("5", yaw, pitch, roll)
+        #drawPFD("5", yaw, pitch, roll)
         
         elapsed = time.time()-startTime
         
